@@ -3,14 +3,18 @@ import Recipe from './models/Recipe';
 import List from './models/list';
 import Likes from './models/likes';
 import * as listView from './views/listView';
+import * as likesView from './views/likesView';
 import { elements, renderLoader, clearLoader } from './views/base';
 import * as searchView from './views/searchViews';
 import * as recipeView from './views/recipeView';
 
 const state = {}
-window.state = state;
 
-// Search Controller
+
+/**
+ * Search Controller
+ */
+
 const controlSearch = async () => {
     const query = searchView.getInput();
 
@@ -47,12 +51,13 @@ window.addEventListener('click', e => {
     }
 })
 
-// Recipe Controller
+/** 
+ * Recipe Controller
+ */ 
 
 const controlRecipe = async () => {
     const id = window.location.hash.replace('#', '');
-    console.log(id);
-
+    
     if (id) {
         recipeView.clearRes();
         renderLoader(elements.recipe);
@@ -61,15 +66,12 @@ const controlRecipe = async () => {
         try {
             await state.recipe.getRecipe();
             state.recipe.parseIngredients();
-            console.log(state.recipe.ingredients);
 
             state.recipe.calcTime();
             state.recipe.calcServings();
 
-
             clearLoader();
-            recipeView.renderRecipe(state.recipe);
-
+            recipeView.renderRecipe(state.recipe, state.likes.isLiked(id));
 
         }
         catch (error) {
@@ -84,23 +86,33 @@ const controlRecipe = async () => {
 /**
  * Like Controller
  */
+
 const controlLike = () => {
     if (!state.likes) state.likes = new Likes();
     const currentID = state.recipe.id;
     if (!state.likes.isLiked(currentID)) {
-        console.log(state.likes.isLiked(currentID));
         const newLike = state.likes.addLike(
             currentID,
             state.recipe.title,
             state.recipe.author,
             state.recipe.img
         );
-        console.log(state.likes);
+        likesView.toggleLikeBtn(true);
+        likesView.renderLike(newLike);
     } else {
-        state.likes.deleteLike(currentID)
-        console.log(state.likes);
+        state.likes.deleteLike(currentID);
+        likesView.toggleLikeBtn(false);
+        likesView.deleteLike(currentID);
     }
+    likesView.toggleLikeMenu(state.likes.getNumLikes());
 }
+
+window.addEventListener('load', () => {
+    state.likes = new Likes();
+    state.likes.readStorage();
+    likesView.toggleLikeMenu(state.likes.getNumLikes());
+    state.likes.likes.forEach(like => likesView.renderLike(like));
+})
 
 
 /**
@@ -144,4 +156,3 @@ elements.recipe.addEventListener('click', e => {
     }
 });
 
-window.l = new List();
