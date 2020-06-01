@@ -4,7 +4,7 @@ export default class Recipe {
     constructor(id) {
         this.id = id;
     }
-    
+
     async getRecipe() {
         const proxy = 'https://cors-anywhere.herokuapp.com/';
         try {
@@ -13,11 +13,11 @@ export default class Recipe {
             this.author = res.data.recipe.publisher;
             this.img = res.data.recipe.image_url;
             this.url = res.data.recipe.source_url;
-            this.ingredients = res.data.recipe.ingredients;         
+            this.ingredients = res.data.recipe.ingredients;
         }
         catch (error) {
             alert(error);
-        }    
+        }
     }
 
     calcTime() {
@@ -39,21 +39,21 @@ export default class Recipe {
             let ingredient = el.toLowerCase();
             unitsLong.forEach((unit, i) => {
                 ingredient = ingredient.replace(unit, unitsShort[i]);
-            }); 
+            });
 
             ingredient = ingredient.replace(/ *\([^)]*\) */g, " ");
             const arrIng = ingredient.split(' ');
             const unitIndex = arrIng.findIndex(el2 => unitsShort.includes(el2));
 
             let objIng;
-            if(unitIndex > -1){
+            if (unitIndex > -1) {
 
-                const arrCount  = arrIng.slice(0, unitIndex);
+                const arrCount = arrIng.slice(0, unitIndex);
 
                 let count;
-                if(arrCount.length === 1){
+                if (arrCount.length === 1) {
                     count = eval(arrIng[0].replace('-', '+'));
-                }else {
+                } else {
                     count = eval(arrIng.slice(0, unitIndex).join('+'));
                 }
 
@@ -63,7 +63,7 @@ export default class Recipe {
                     ingredient: arrIng.slice(unitIndex + 1).join(' ')
                 }
 
-            }else if(parseInt(arrIng[0], 10)){
+            } else if (parseInt(arrIng[0], 10)) {
 
                 objIng = {
                     count: parseInt(arrIng[0], 10),
@@ -71,7 +71,7 @@ export default class Recipe {
                     ingredient: arrIng.slice(1).join(' ')
                 }
 
-            }else if(unitIndex === -1){
+            } else if (unitIndex === -1) {
 
                 objIng = {
                     count: 1,
@@ -85,4 +85,13 @@ export default class Recipe {
         });
         this.ingredients = newIngredients;
     }
+
+    updateServings(type) {
+        const newServings = type === 'dec' ? this.servings - 1 : this.servings + 1;
+        this.ingredients.forEach(ing => {
+            ing.count = ing.count * (newServings / this.servings);
+        })
+        this.servings = newServings;
+    }
+
 }
